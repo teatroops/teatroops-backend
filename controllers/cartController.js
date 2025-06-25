@@ -44,26 +44,47 @@ const addToCart = async (req, res) => {
 // update user cart
 const updateCart = async (req,res) => {
     try {
-        
-        const { userId ,itemId, size, quantity } = req.body
+        const { itemId, size, quantity } = req.body;
+        const userId = req.user.id; // use id from auth middleware
 
-        const userData = await userModel.findById(userId)
+        const userData = await userModel.findById(userId);
         if (!userData) {
             return res.json({ success: false, message: "User not found" });
         }
-        let cartData = await userData.cartData;
 
-        cartData[itemId][size] = quantity
+        // Ensure cartData is initialized
+        if (!userData.cartData) {
+            userData.cartData = {};
+        }
 
-        await userModel.findByIdAndUpdate(userId, {cartData})
-        res.json({ success: true, message: "Cart Updated" })
+        // If quantity is 0, remove the size entry (and item if empty)
+        if (Number(quantity) <= 0) {
+            if (userData.cartData[itemId] && userData.cartData[itemId][size] !== undefined) {
+                delete userData.cartData[itemId][size];
+                // If there are no more sizes under the product, remove the product key
+                if (Object.keys(userData.cartData[itemId]).length === 0) {
+                    delete userData.cartData[itemId];
+                }
+            }
+        } else {
+            // Otherwise update / set the quantity
+            if (!userData.cartData[itemId]) {
+                userData.cartData[itemId] = {};
+            }
+            userData.cartData[itemId][size] = Number(quantity);
+        }
+
+        // Mark nested object as modified so Mongoose saves it
+        userData.markModified('cartData');
+        await userData.save();
+
+        res.json({ success: true, message: "Cart Updated" });
 
     } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
+        console.log(error);
+        res.json({ success: false, message: error.message });
     }
 }
-
 
 // get user cart data
 const getUserCart = async (req,res) => {
