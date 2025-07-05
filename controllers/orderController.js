@@ -6,7 +6,7 @@ import razorpay from 'razorpay'
 
 // global variables
 const currency = 'inr'
-const deliveryCharge = 10
+const deliveryCharge = 0;
 
 
 
@@ -22,7 +22,7 @@ const placeOrder = async (req, res) => {
     let orderItems = [];
     let totalItems = 0;
     let amount = 0;
-    const deliveryChargeValue = 10;
+    const deliveryChargeValue = 0;
 
     for (const cartItem of items) {
       const { productId, size, quantity } = cartItem;
@@ -48,7 +48,6 @@ const placeOrder = async (req, res) => {
     amount += deliveryChargeValue;
 
     const orderData = {
-      userId,
       items: orderItems,
       totalItems,
       amount: req.body.amount ?? amount,
@@ -59,10 +58,17 @@ const placeOrder = async (req, res) => {
       payment: false,
       createdAt: Date.now()
     };
+    if (userId) {
+      orderData.userId = userId;
+    } else if (guestInfo) {
+      orderData.guestInfo = guestInfo; // { name, email, phone }
+    }
 
     const newOrder = new orderModel(orderData);
     await newOrder.save();
-    await userModel.findByIdAndUpdate(userId, { cartData: {} });
+    if (userId) {
+      await userModel.findByIdAndUpdate(userId, { cartData: {} });
+    }
     res.json({ success: true, message: "Order Placed" });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -78,7 +84,7 @@ const placeOrderRazorpay = async (req, res) => {
     let orderItems = [];
     let totalItems = 0;
     let amount = 0;
-    const deliveryChargeValue = 10;
+    const deliveryChargeValue = 0;
 
     for (const cartItem of items) {
       const { productId, size, quantity } = cartItem;
