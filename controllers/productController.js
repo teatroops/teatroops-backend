@@ -5,12 +5,12 @@ import productModel from "../models/productModel.js"
 const addProduct = async (req, res) => {
     try {
 
-        const { 
-            name, 
-            description, 
-            category, 
-            subCategory, 
-            size, 
+        const {
+            name,
+            description,
+            category,
+            subCategory,
+            size,
             bestseller,
             benefits,
             storageInstructions,
@@ -20,42 +20,40 @@ const addProduct = async (req, res) => {
             offer,
             discountNote,
             highlightTitle,
-            highlightText,    
+            highlightText,
         } = req.body
 
-        // Get all uploaded files
         const images = [];
         let highlightImageUrl = '';
-    
-        
-        // Properly collect image files from multer's req.files object
-        // Multer with fields() creates an object with field names as keys and arrays of files as values
+
+        // Collect image files from multer's req.files object
         if (req.files) {
-          ['image1', 'image2', 'image3', 'image4', 'image5'].forEach(field => {
-            if (req.files[field] && req.files[field].length > 0) {
-              images.push(req.files[field][0]); // Add the file object to our images array
+            for (let i = 1; i <= 10; i++) {
+                const field = `image${i}`;
+                if (req.files[field] && req.files[field].length > 0) {
+                    images.push(req.files[field][0]);
+                }
             }
-          });
         }
-        
+
         // Upload to Cloudinary
         const imagesUrl = await Promise.all(
-          images.map(async (file) => {
-            try {
-              const result = await cloudinary.uploader.upload(file.path, {
-                resource_type: 'image',
-                folder: 'tea-troops/products'
-              });
-              return result.secure_url;
-            } catch (error) {
-              console.error('Error uploading image:', error);
-              throw error;
-            }
-          })
+            images.map(async (file) => {
+                try {
+                    const result = await cloudinary.uploader.upload(file.path, {
+                        resource_type: 'image',
+                        folder: 'tea-troops/products'
+                    });
+                    return result.secure_url;
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    throw error;
+                }
+            })
         );
-        
+
         if (!imagesUrl.length) {
-          return res.json({ success: false, message: 'No images uploaded. Please select at least one product image.' });
+            return res.json({ success: false, message: 'No images uploaded. Please select at least one product image.' });
         }
 
         // Highlight image upload
@@ -72,27 +70,26 @@ const addProduct = async (req, res) => {
         }
 
         let parsedInfusionGuide = infusionGuide;
-if (typeof infusionGuide === 'string') {
-    try {
-        parsedInfusionGuide = JSON.parse(infusionGuide);
-    } catch (e) {
-        parsedInfusionGuide = {};
-    }
-} else if (
-    req.body['infusionGuide.quantity'] ||
-    req.body['infusionGuide.temperature'] ||
-    req.body['infusionGuide.time'] ||
-    req.body['infusionGuide.infusions']
-) {
-    parsedInfusionGuide = {
-        quantity: req.body['infusionGuide.quantity'] || '',
-        temperature: req.body['infusionGuide.temperature'] || '',
-        time: req.body['infusionGuide.time'] || '',
-        infusions: req.body['infusionGuide.infusions'] || '',
-    };
-}
+        if (typeof infusionGuide === 'string') {
+            try {
+                parsedInfusionGuide = JSON.parse(infusionGuide);
+            } catch (e) {
+                parsedInfusionGuide = {};
+            }
+        } else if (
+            req.body['infusionGuide.quantity'] ||
+            req.body['infusionGuide.temperature'] ||
+            req.body['infusionGuide.time'] ||
+            req.body['infusionGuide.infusions']
+        ) {
+            parsedInfusionGuide = {
+                quantity: req.body['infusionGuide.quantity'] || '',
+                temperature: req.body['infusionGuide.temperature'] || '',
+                time: req.body['infusionGuide.time'] || '',
+                infusions: req.body['infusionGuide.infusions'] || '',
+            };
+        }
 
-        // Store size as a plain string
         const productData = {
             name,
             description,
@@ -101,7 +98,7 @@ if (typeof infusionGuide === 'string') {
             size: (typeof size === 'string' && size && size !== 'undefined') ? size : '',
             bestseller: bestseller === "true" ? true : false,
             benefits: benefits ? JSON.parse(benefits) : [],
-            storageInstructions:storageInstructions || '',
+            storageInstructions: storageInstructions || '',
             caution: caution || '',
             infusionGuide: parsedInfusionGuide,
             price: {
@@ -133,9 +130,9 @@ if (typeof infusionGuide === 'string') {
 // function for list product
 const listProducts = async (req, res) => {
     try {
-        
+
         const products = await productModel.find({});
-        res.json({success:true,products})
+        res.json({ success: true, products })
 
     } catch (error) {
         console.log(error)
@@ -146,9 +143,9 @@ const listProducts = async (req, res) => {
 // function for removing product
 const removeProduct = async (req, res) => {
     try {
-        
+
         await productModel.findByIdAndDelete(req.body.id)
-        res.json({success:true,message:"Product Removed"})
+        res.json({ success: true, message: "Product Removed" })
 
     } catch (error) {
         console.log(error)
@@ -159,10 +156,10 @@ const removeProduct = async (req, res) => {
 // function for single product info
 const singleProduct = async (req, res) => {
     try {
-        
+
         const { productId } = req.body
         const product = await productModel.findById(productId)
-        res.json({success:true,product})
+        res.json({ success: true, product })
 
     } catch (error) {
         console.log(error)

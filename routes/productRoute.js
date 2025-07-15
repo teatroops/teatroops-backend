@@ -2,23 +2,28 @@ import express from 'express'
 import { addProduct, listProducts, removeProduct, singleProduct } from '../controllers/productController.js'
 import upload from '../middleware/multer.js';
 import adminAuth from '../middleware/adminAuth.js';
-import productModel from '../models/productModel.js'; 
+import productModel from '../models/productModel.js';
 
 const productRouter = express.Router();
 
 // Add product with detailed information
 productRouter.post("/add", adminAuth, upload.fields([
-  {name:'image1',maxCount:1},
-  {name:'image2',maxCount:1},
-  {name:'image3',maxCount:1},
-  {name:'image4',maxCount:1},
-  {name:'image5',maxCount:1},
-  {name:'highlightImage',maxCount:1}
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 },
+    { name: 'image4', maxCount: 1 },
+    { name: 'image5', maxCount: 1 },
+    { name: 'image6', maxCount: 1 },
+    { name: 'image7', maxCount: 1 },
+    { name: 'image8', maxCount: 1 },
+    { name: 'image9', maxCount: 1 },
+    { name: 'image10', maxCount: 1 },
+    { name: 'highlightImage', maxCount: 1 }
 ]), addProduct);
 
-productRouter.get('/list',listProducts)
-productRouter.post('/remove',adminAuth,removeProduct);
-productRouter.post('/single',singleProduct);
+productRouter.get('/list', listProducts)
+productRouter.post('/remove', adminAuth, removeProduct);
+productRouter.post('/single', singleProduct);
 
 // Get products by category
 productRouter.get("/products-by-category/:category", async (req, res) => {
